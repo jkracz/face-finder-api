@@ -1,0 +1,19 @@
+{
+  "name": "face-finder-api",
+  "version": "1.0.0",
+  "description": "API powering the Face Finder project",
+  "main": "index.js",
+  "scripts": {
+    "start": "nodemon server.js"
+  },
+  "author": "Joe Kracz",
+  "license": "ISC",
+  "devDependencies": {
+    "nodemon": "^2.0.20"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "express": "^4.18.2"
+  }
+}
