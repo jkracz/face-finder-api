@@ -2,6 +2,22 @@ const express = require("express");
 const { reset } = require("nodemon");
 const bcrypt = require('bcryptjs');
 const cors = require("cors");
+const knex = require('knex');
+
+const db = knex({
+    client: 'pg',
+    connection: {
+      host : '127.0.0.1',
+      port : 5432,
+      user : 'josephkracz',
+      password : '',
+      database : 'face-finder'
+    }
+});
+
+// db.select('*').from('users').then(data => {
+//     console.log(data);
+// });
 
 const app = express();
 
@@ -9,26 +25,26 @@ app.use(express.urlencoded({extended: false}));
 app.use(express.json());
 app.use(cors());
 
-const db = {
-    users: [
-        {
-            id: "123",
-            name: "Joe",
-            email: "joe@joe.com",
-            password: bcrypt.hashSync("chocolate"),
-            entries: 0,
-            joined: new Date()
-        },
-        {
-            id: "456",
-            name: "Satmoi",
-            email: "sat@bss.com",
-            password: bcrypt.hashSync("oops"),
-            entries: 0,
-            joined: new Date()
-        }
-    ]
-};
+// const db = {
+//     users: [
+//         {
+//             id: "123",
+//             name: "Joe",
+//             email: "joe@joe.com",
+//             password: bcrypt.hashSync("chocolate"),
+//             entries: 0,
+//             joined: new Date()
+//         },
+//         {
+//             id: "456",
+//             name: "Satmoi",
+//             email: "sat@bss.com",
+//             password: bcrypt.hashSync("oops"),
+//             entries: 0,
+//             joined: new Date()
+//         }
+//     ]
+// };
 
 app.get("/", (req, res) => {
     res.json(db.users);
@@ -46,29 +62,26 @@ app.post("/signin", (req, res) => {
 app.post("/register", (req, res) => {
     const { email, name, password } = req.body;
     const hash = bcrypt.hashSync(password);
-    db.users.push({
-        id: "789",
-        name: name,
+    db('users')
+    .returning('*')
+    .insert({
         email: email,
-        password: hash,
-        entries: 0,
+        name: name,
         joined: new Date()
-    });
-    res.json(db.users.slice(-1));
+    })
+    .then(user => res.json(user[0]))
+    .catch(err => res.status(400).json('unable to register'));
 });
 
 app.get("/profile/:id", (req, res) => {
     const { id } = req.params;
-    let found = false;
-    db.users.forEach(user => {
-        if (user.id === id) {
-            found = true;
-            return res.json(user);
+    db.select('*').from('users').where('id', id).then(user => {
+        if (user.length) {
+            res.send(user[0]);
+        } else {
+            res.status(400).json('user not found')
         }
     });
-    if (!found) {
-        res.status(400).json("user not found");
-    }
 });
 
 app.put("/image", (req, res) => {
