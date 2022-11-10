@@ -15,36 +15,11 @@ const db = knex({
     }
 });
 
-// db.select('*').from('users').then(data => {
-//     console.log(data);
-// });
-
 const app = express();
 
 app.use(express.urlencoded({extended: false}));
 app.use(express.json());
 app.use(cors());
-
-// const db = {
-//     users: [
-//         {
-//             id: "123",
-//             name: "Joe",
-//             email: "joe@joe.com",
-//             password: bcrypt.hashSync("chocolate"),
-//             entries: 0,
-//             joined: new Date()
-//         },
-//         {
-//             id: "456",
-//             name: "Satmoi",
-//             email: "sat@bss.com",
-//             password: bcrypt.hashSync("oops"),
-//             entries: 0,
-//             joined: new Date()
-//         }
-//     ]
-// };
 
 app.get("/", (req, res) => {
     res.json(db.users);
@@ -52,24 +27,47 @@ app.get("/", (req, res) => {
 
 app.post("/signin", (req, res) => {
     const { email, password } = req.body;
-    if (email === db.users[0].email && bcrypt.compareSync(password, db.users[0].password)) {
-        res.json(db.users[0]);
-    } else {
+    db.where('email', '=', email)
+    .select('email', 'hash')
+    .from('login')
+    .then(login => {
+        if (login.length && bcrypt.compareSync(password, login[0].hash)) {
+            return db.select('*').from('users').where('email', '=', login[0].email)
+            .then(data => res.json(data[0]))
+            .catch(err => res.status(400).json("error logging in"));
+        } else {
+            res.status(400).json("wrong credentials");
+        }
+    })
+    .catch(err => {
+        console.log(err);
         res.status(400).json("error logging in");
-    }
+    });
 });
 
 app.post("/register", (req, res) => {
     const { email, name, password } = req.body;
     const hash = bcrypt.hashSync(password);
-    db('users')
-    .returning('*')
-    .insert({
-        email: email,
-        name: name,
-        joined: new Date()
+    db.transaction(trx => {
+        trx.insert({
+            hash: hash,
+            email: email
+        })
+        .into('login')
+        .returning('email')
+        .then(loginEmail => {
+            return trx('users')
+            .returning('*')
+            .insert({
+                email: loginEmail[0].email,
+                name: name,
+                joined: new Date()
+            })
+            .then(user => res.json(user[0]))
+        })
+        .then(trx.commit)
+        .catch(trx.rollback);
     })
-    .then(user => res.json(user[0]))
     .catch(err => res.status(400).json('unable to register'));
 });
 
@@ -86,17 +84,13 @@ app.get("/profile/:id", (req, res) => {
 
 app.put("/image", (req, res) => {
     const { id } = req.body;
-    let found = false;
-    db.users.forEach(user => {
-        if (user.id === id) {
-            found = true;
-            user.entries++;
-            return res.json(user.entries);
-        }
-    });
-    if (!found) {
-        res.status(400).json("user not found");
-    }
+    db('users').returning('entries')
+    .where('id', '=', id)
+    .increment('entries', 1)
+    .then(entries => {
+        res.json(entries[0]);
+    })
+    .catch(err => res.status(400).json('unable to get entries'));
 });
 
 app.listen(3000, () => {
