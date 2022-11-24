@@ -1,16 +1,30 @@
-const Clarifai = require('clarifai');
+const {ClarifaiStub, grpc} = require("clarifai-nodejs-grpc");
 
-const app = new Clarifai.App({
-    apiKey: "08e81ce8f9e34023b240c6b7595bf067"
-  });
+const stub = ClarifaiStub.grpc();
+
+const metadata = new grpc.Metadata();
+metadata.set("authorization", "Key 08e81ce8f9e34023b240c6b7595bf067");
 
 const handleClarifaiCall = (req, res) => {
-    app.models
-    .predict(Clarifai.FACE_DETECT_MODEL, req.body.input)
-    .then(data => {
-        res.json(data);
-    })
-    .catch(err => res.status(400).json("error processing your image"));
+    stub.PostModelOutputs(
+        {
+            model_id: "a403429f2ddf4b49b307e318f00e528b",
+            inputs: [{data: {image: {url: req.body.input}}}]
+        },
+        metadata,
+        (err, response) => {
+            if (err) {
+                console.log("Error: " + err);
+                return res.status(400).json("error processing image");
+            }
+    
+            if (response.status.code !== 10000) {
+                console.log("Received failed status: " + response.status.description + "\n" + response.status.details);
+                return res.status(400).json("error processing image");
+            }
+            res.json(response);
+        }
+    );
 }
 
 const addImage = (req, res, db) => {
