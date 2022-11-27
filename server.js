@@ -8,15 +8,21 @@ const signin = require("./controllers/signin");
 const { getProfileById } = require("./controllers/profile");
 const image = require("./controllers/image");
 
-const db = knex({
-    client: 'pg',
-    connection: {
-      host : '127.0.0.1',
-      port : 5432,
-      user : 'josephkracz',
-      password : '',
-      database : 'face-finder'
-    }
+// const db = knex({
+//     client: 'pg',
+//     connection: {
+//       host : '127.0.0.1',
+//       port : 5432,
+//       user : 'josephkracz',
+//       password : '',
+//       database : 'face-finder'
+//     }
+// });
+
+const db = require('knex')({
+  client: 'pg',
+  connection: process.env.PG_CONNECTION_STRING,
+  searchPath: ['knex', 'public'],
 });
 
 const app = express();
