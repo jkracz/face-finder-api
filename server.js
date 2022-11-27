@@ -35,6 +35,8 @@ app.get("/", (req, res) => {
     res.json("The API is working");
 });
 
+app.get("/health", (req, res) => {res.sendStatus(200)});
+
 app.post("/signin", signin.handleSignin(db, bcrypt));
 
 app.post("/register", (req, res) => {register.handleRegister(req, res, db, bcrypt)});
