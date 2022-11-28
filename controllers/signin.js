@@ -5,7 +5,7 @@ const handleSignin = (db, bcrypt) => (req, res) => {
     }
     db.where('email', '=', email)
     .select('email', 'hash')
-    .from('login')
+    .from('logins')
     .then(login => {
         if (login.length && bcrypt.compareSync(password, login[0].hash)) {
             return db.select('*').from('users').where('email', '=', login[0].email)
