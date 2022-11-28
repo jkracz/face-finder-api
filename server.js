@@ -33,6 +33,8 @@ app.use(cors());
 
 app.get("/", (req, res) => {
     res.json("The API is working");
+    console.log(process.env.PG_CONNECTION_STRING);
+    console.log(db);
 });
 
 app.get("/health", (req, res) => {res.sendStatus(200)});
