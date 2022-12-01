@@ -8,18 +8,7 @@ const signin = require("./controllers/signin");
 const { getProfileById } = require("./controllers/profile");
 const image = require("./controllers/image");
 
-// const db = knex({
-//     client: 'pg',
-//     connection: {
-//       host : '127.0.0.1',
-//       port : 5432,
-//       user : 'josephkracz',
-//       password : '',
-//       database : 'face-finder'
-//     }
-// });
-
-const db = require('knex')({
+const db = knex({
   client: 'pg',
   connection: process.env.PG_CONNECTION_STRING,
   searchPath: ['knex', 'public'],
@@ -32,9 +21,7 @@ app.use(express.json());
 app.use(cors());
 
 app.get("/", (req, res) => {
-    res.json("The API is working");
-    console.log(process.env.PG_CONNECTION_STRING);
-    console.log(db);
+  res.json("The API is working");
 });
 
 app.get("/health", (req, res) => {res.sendStatus(200)});

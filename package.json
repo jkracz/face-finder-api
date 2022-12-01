@@ -2,7 +2,6 @@
   "name": "face-finder-api",
   "version": "1.0.0",
   "description": "API powering the Face Finder project",
-  "main": "server.js",
   "scripts": {
     "start": "nodemon server.js"
   },
