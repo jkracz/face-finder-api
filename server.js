@@ -21,13 +21,7 @@ app.use(express.json());
 app.use(cors());
 
 app.get("/", (req, res) => {
-  db.select('*').from('users')
-  .then(data => res.status(200).send(data))
-  .catch(err => {
-    console.log(err);
-    res.status(400).json('no worky');
-  });
-  // res.json("The API is working");
+  res.sendStatus(200);
 });
 
 app.get("/health", (req, res) => {res.sendStatus(200)});
